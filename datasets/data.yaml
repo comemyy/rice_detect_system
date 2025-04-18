@@ -1,0 +1,7 @@
+train: D:\rice_detect_system\datasets\train
+val: D:\rice_detect_system\datasets\valid
+test: D:\rice_detect_system\datasets\test
+# Number of classes
+
+nc: 3
+names: ['Bacteria_Leaf_Blight', 'Brown_Spot', 'Leaf_smut']

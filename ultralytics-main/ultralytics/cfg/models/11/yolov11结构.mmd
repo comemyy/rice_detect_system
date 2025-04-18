@@ -1,0 +1,49 @@
+graph TB
+    %% 输入层
+    Input[640×640×3\n输入图像] --> Stem
+    
+    %% 主干网络
+    subgraph Stem[主干网络]
+        S1[Conv64\n3×3/2] --> S2[Conv128\n3×3/2]
+        S2 --> C3k2_1[2×C3k2\n256]
+        C3k2_1 --> S3[Conv256\n3×3/2]
+        S3 --> C3k2_2[2×C3k2\n512]
+        C3k2_2 --> S4[Conv512\n3×3/2]
+        S4 --> C3k2_3[2×C3k2\n512]
+        C3k2_3 --> S5[Conv1024\n3×3/2]
+        S5 --> C3k2_4[2×C3k2\n1024]
+        C3k2_4 --> SPPF[SPPF\n1024]
+        SPPF --> PSA[2×C2PSA\n1024]
+    end
+    
+    %% 特征融合
+    subgraph Neck[特征金字塔]
+        PSA --> UP1[Upsample2×]
+        UP1 --> Cat1[Concat+P4]
+        Cat1 --> C3k2_5[2×C3k2\n512]
+        
+        C3k2_5 --> UP2[Upsample2×]
+        UP2 --> Cat2[Concat+P3]
+        Cat2 --> C3k2_6[2×C3k2\n256]
+        
+        C3k2_6 --> Down1[Conv256\n3×3/2]
+        Down1 --> Cat3[Concat+P4]
+        Cat3 --> C3k2_7[2×C3k2\n512]
+        
+        C3k2_7 --> Down2[Conv512\n3×3/2]
+        Down2 --> Cat4[Concat+P5]
+        Cat4 --> C3k2_8[2×C3k2\n1024]
+    end
+    
+    %% 检测头
+    subgraph Head[检测头]
+        C3k2_6 --> P3[P3/8]
+        C3k2_7 --> P4[P4/16]
+        C3k2_8 --> P5[P5/32]
+        P3 --> Detect[Detect]
+        P4 --> Detect
+        P5 --> Detect
+    end
+    
+    %% 输出
+    Detect --> Output[80类检测结果]
